@@ -136,7 +136,9 @@ onMounted(async () => {
     <header class="topbar">
       <RouterLink to="/" class="back">← 홈</RouterLink>
       <h1 class="title">AED 지도</h1>
-      <span class="spacer"></span>
+      <button class="locate-btn" :disabled="locating" @click="locateMe">
+        {{ locating ? '위치 확인 중...' : '📍 현재 위치' }}
+      </button>
     </header>
 
     <div class="body">
@@ -186,9 +188,6 @@ onMounted(async () => {
 
       <div class="map-wrap">
         <div ref="mapEl" class="map"></div>
-        <button class="locate-btn" :disabled="locating" @click="locateMe">
-          {{ locating ? '위치 확인 중...' : '📍 현재 위치' }}
-        </button>
         <p v-if="mapError" class="hint error map-overlay-error">{{ mapError }}</p>
       </div>
     </div>
@@ -223,7 +222,7 @@ onMounted(async () => {
   color: var(--text-strong);
   margin: 0;
 }
-.spacer {
+.topbar .locate-btn {
   justify-self: end;
 }
 .body {
@@ -351,18 +350,22 @@ onMounted(async () => {
   height: 100%;
 }
 .locate-btn {
-  position: absolute;
-  left: 16px;
-  top: 16px;
   background: var(--bg-card);
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 999px;
-  padding: 10px 16px;
+  padding: 8px 14px;
   font-size: 13px;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
   cursor: pointer;
+}
+.locate-btn:hover {
+  border-color: var(--accent);
+}
+.locate-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 .map-overlay-error {
   position: absolute;

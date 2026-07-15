@@ -34,11 +34,11 @@ import { RouterLink } from 'vue-router'
   text-align: center;
 }
 .brand {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 0.02em;
-  margin: 0 0 20px;
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--text-strong);
+  letter-spacing: -0.5px;
+  margin: 0 0 24px;
 }
 .headline {
   font-size: 38px;
@@ -96,6 +96,9 @@ import { RouterLink } from 'vue-router'
 }
 
 @media (max-width: 480px) {
+  .brand {
+    font-size: 26px;
+  }
   .headline {
     font-size: 28px;
   }
