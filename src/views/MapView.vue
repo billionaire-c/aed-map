@@ -33,6 +33,18 @@ function summarize(aedId) {
   return { lastChecked: reports[0].created_at, count: reports.length }
 }
 
+function reportBadges(aedId) {
+  const reports = store.reportsByDevice[aedId] || []
+  const counts = { broken: 0, removed: 0 }
+  reports.forEach((r) => {
+    if (counts[r.status] !== undefined) counts[r.status]++
+  })
+  const badges = []
+  if (counts.broken) badges.push({ type: 'broken', label: `고장 ${counts.broken}건` })
+  if (counts.removed) badges.push({ type: 'removed', label: `철거 ${counts.removed}건` })
+  return badges
+}
+
 function buildHoverContent(device) {
   const reports = (store.reportsByDevice[device.id] || []).slice(0, 3)
   const rows = reports.length
@@ -198,10 +210,18 @@ onMounted(async () => {
             v-for="d in filteredSortedDevices"
             :key="d.id"
             class="list-item"
+            draggable="false"
             @click="focusDevice(d)"
           >
             <div class="list-item-main">
-              <p class="name">{{ d.name }}</p>
+              <p class="name">
+                {{ d.name }}
+                <span
+                  v-for="b in reportBadges(d.id)"
+                  :key="b.type"
+                  :class="['badge-mini', 'badge-mini-' + b.type]"
+                >{{ b.label }}</span>
+              </p>
               <p class="address">{{ d.address }}</p>
             </div>
             <span v-if="d._distance != null" class="distance">{{ formatDistance(d._distance) }}</span>
@@ -311,6 +331,8 @@ onMounted(async () => {
   padding: 10px 14px;
   border-bottom: 1px solid var(--border);
   cursor: pointer;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 .list-item:hover {
   background: rgba(56, 189, 248, 0.08);
@@ -320,6 +342,10 @@ onMounted(async () => {
   font-size: 13px;
   color: var(--text-strong);
   margin: 0 0 2px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 .list-item .address {
   font-size: 11px;
@@ -332,6 +358,21 @@ onMounted(async () => {
   font-weight: 600;
   white-space: nowrap;
   flex: none;
+}
+.badge-mini {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.badge-mini-broken {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+}
+.badge-mini-removed {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
 }
 .detail {
   padding: 14px;
