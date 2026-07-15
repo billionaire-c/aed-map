@@ -12,6 +12,7 @@ const mapEl = ref(null)
 const map = shallowRef(null)
 const kakaoRef = shallowRef(null)
 const meMarker = shallowRef(null)
+const hoverOverlay = shallowRef(null)
 
 const selected = ref(null)
 const query = ref('')
@@ -22,11 +23,38 @@ const mapError = ref(null)
 const reportStatus = ref('ok')
 const reportComment = ref('')
 const submitting = ref(false)
+const successMessage = ref('')
+
+const STATUS_LABEL = { ok: '정상 작동', broken: '고장', removed: '철거됨' }
 
 function summarize(aedId) {
   const reports = store.reportsByDevice[aedId] || []
   if (reports.length === 0) return { lastChecked: null, count: 0 }
   return { lastChecked: reports[0].created_at, count: reports.length }
+}
+
+function buildHoverContent(device) {
+  const reports = (store.reportsByDevice[device.id] || []).slice(0, 3)
+  const rows = reports.length
+    ? reports
+        .map(
+          (r) =>
+            `<div style="display:flex;justify-content:space-between;gap:10px;padding:3px 0;">
+              <span style="color:#94a3b8;">${r.created_at.slice(0, 10)}</span>
+              <span style="color:#e2e8f0;font-weight:600;">${STATUS_LABEL[r.status] || r.status}</span>
+            </div>`,
+        )
+        .join('')
+    : '<div style="color:#94a3b8;">등록된 신고 이력이 없습니다</div>'
+
+  return `
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:10px 14px;
+                box-shadow:0 4px 16px rgba(0,0,0,0.4);font-size:12px;min-width:180px;
+                font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;">
+      <div style="color:#ffffff;font-weight:700;margin-bottom:6px;">${device.name}</div>
+      ${rows}
+    </div>
+  `
 }
 
 const referenceCenter = computed(() => userLocation.value || HWASEONG_CENTER)
@@ -59,19 +87,37 @@ async function focusDevice(device) {
 async function submitReport() {
   if (!selected.value) return
   submitting.value = true
-  await store.submitReport(selected.value.id, reportStatus.value, reportComment.value)
+  const error = await store.submitReport(selected.value.id, reportStatus.value, reportComment.value)
   submitting.value = false
   reportComment.value = ''
+
+  if (!error) {
+    successMessage.value = '신고가 등록되었습니다'
+    setTimeout(() => {
+      successMessage.value = ''
+    }, 2500)
+  }
 }
 
 function placeMarkers(kakao) {
+  if (!hoverOverlay.value) {
+    hoverOverlay.value = new kakao.maps.CustomOverlay({ yAnchor: 1.3 })
+  }
+
   store.devices.forEach((device) => {
     if (!device.lat || !device.lng) return
-    const marker = new kakao.maps.Marker({
-      position: new kakao.maps.LatLng(device.lat, device.lng),
-      map: map.value,
-    })
+    const position = new kakao.maps.LatLng(device.lat, device.lng)
+    const marker = new kakao.maps.Marker({ position, map: map.value })
+
     kakao.maps.event.addListener(marker, 'click', () => focusDevice(device))
+    kakao.maps.event.addListener(marker, 'mouseover', () => {
+      hoverOverlay.value.setContent(buildHoverContent(device))
+      hoverOverlay.value.setPosition(position)
+      hoverOverlay.value.setMap(map.value)
+    })
+    kakao.maps.event.addListener(marker, 'mouseout', () => {
+      hoverOverlay.value.setMap(null)
+    })
   })
 }
 
@@ -124,6 +170,7 @@ onMounted(async () => {
     })
 
     await store.fetchDevices()
+    await store.fetchAllReports()
     placeMarkers(kakao)
   } catch (e) {
     mapError.value = '카카오맵을 불러오지 못했어요. .env의 VITE_KAKAO_JS_KEY가 올바른지 확인해주세요.'
@@ -180,6 +227,7 @@ onMounted(async () => {
             <button :disabled="submitting" @click="submitReport">
               {{ submitting ? '등록 중...' : '신고 등록' }}
             </button>
+            <p v-if="successMessage" class="success-msg">✓ {{ successMessage }}</p>
           </div>
         </div>
 
@@ -312,6 +360,12 @@ onMounted(async () => {
   font-size: 12px;
   color: var(--text-muted);
   margin: 8px 0 12px;
+}
+.success-msg {
+  font-size: 12px;
+  font-weight: 700;
+  color: #4ade80;
+  margin: 4px 0 0;
 }
 .report-form {
   display: flex;

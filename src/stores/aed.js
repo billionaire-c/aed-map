@@ -22,6 +22,21 @@ export const useAedStore = defineStore('aed', {
       this.loading = false
     },
 
+    async fetchAllReports() {
+      const { data, error } = await supabase
+        .from('reports')
+        .select('*')
+        .order('created_at', { ascending: false })
+      if (error) return
+
+      const grouped = {}
+      for (const row of data) {
+        if (!grouped[row.aed_id]) grouped[row.aed_id] = []
+        grouped[row.aed_id].push(row)
+      }
+      this.reportsByDevice = grouped
+    },
+
     async fetchReports(aedId) {
       const { data, error } = await supabase
         .from('reports')
