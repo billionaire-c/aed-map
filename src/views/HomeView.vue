@@ -8,11 +8,6 @@ import { RouterLink } from 'vue-router'
     <h1 class="headline">심정지 골든타임 4분,<br />가장 가까운 AED를 찾아드립니다</h1>
     <p class="stat-line">화성시 전역 <strong>1,077대</strong> AED 실시간 위치 정보 · 공공데이터 기반</p>
 
-    <figure class="mascot">
-      <img src="/assets/koriyo_safety.jpg" alt="안전모를 쓴 화성시 캐릭터 코리요와 친구들" />
-      <figcaption>출처: 화성시 (공공누리 제1유형)</figcaption>
-    </figure>
-
     <nav class="cards">
       <RouterLink to="/map" class="card">
         <span class="icon">📍</span>
@@ -62,22 +57,6 @@ import { RouterLink } from 'vue-router'
   color: var(--text);
   font-weight: 700;
 }
-.mascot {
-  margin: 0 0 40px;
-}
-.mascot img {
-  max-width: 280px;
-  width: 100%;
-  height: auto;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  display: block;
-}
-.mascot figcaption {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-top: 8px;
-}
 .cards {
   display: flex;
   gap: 16px;
@@ -122,9 +101,6 @@ import { RouterLink } from 'vue-router'
   }
   .headline {
     font-size: 28px;
-  }
-  .mascot img {
-    max-width: 220px;
   }
 }
 </style>
