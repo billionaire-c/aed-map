@@ -270,6 +270,8 @@ onMounted(async () => {
         </div>
 
         <p v-if="store.error" class="hint error">{{ store.error }}</p>
+
+        <RouterLink to="/admin" class="admin-link">⚙ 관리자 모드</RouterLink>
       </aside>
 
       <div class="map-wrap">
@@ -324,6 +326,18 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+}
+.admin-link {
+  flex: none;
+  display: block;
+  padding: 8px 14px;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-top: 1px solid var(--border);
+}
+.admin-link:hover {
+  color: var(--accent);
 }
 .search {
   margin: 12px;

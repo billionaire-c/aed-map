@@ -1,15 +1,19 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { RouterLink } from 'vue-router'
 import { supabase } from '../lib/supabase'
 
 const STATUS_LABEL = { ok: '정상 작동', broken: '고장', removed: '철거됨' }
 
-const loading = ref(true)
+const unlocked = ref(false)
+const entryPassword = ref('')
+const entryError = ref('')
+const verifying = ref(false)
+
+const loading = ref(false)
 const error = ref('')
 const reports = ref([])
 const deviceNames = ref({})
-const adminPassword = ref('')
 const deletingId = ref(null)
 const rowMessage = ref({})
 
@@ -41,17 +45,45 @@ async function load() {
   loading.value = false
 }
 
+async function enter() {
+  if (!entryPassword.value) return
+  verifying.value = true
+  entryError.value = ''
+  try {
+    const res = await fetch('/api/admin-verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password: entryPassword.value }),
+    })
+    if (res.ok) {
+      unlocked.value = true
+      entryPassword.value = ''
+      await load()
+    } else {
+      const body = await res.json().catch(() => ({}))
+      entryError.value = body.error || '비밀번호가 올바르지 않습니다'
+    }
+  } catch (e) {
+    entryError.value = '요청 중 오류가 발생했어요'
+  } finally {
+    verifying.value = false
+  }
+}
+
 async function deleteReport(reportId) {
-  if (!adminPassword.value) {
+  const password = window.prompt('삭제하려면 관리자 비밀번호를 다시 입력하세요')
+  if (password === null) return
+  if (!password) {
     rowMessage.value = { ...rowMessage.value, [reportId]: '비밀번호를 입력해주세요' }
     return
   }
+
   deletingId.value = reportId
   try {
     const res = await fetch('/api/admin-delete-report', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ reportId, password: adminPassword.value }),
+      body: JSON.stringify({ reportId, password }),
     })
     if (res.ok) {
       reports.value = reports.value.filter((r) => r.id !== reportId)
@@ -65,8 +97,6 @@ async function deleteReport(reportId) {
     deletingId.value = null
   }
 }
-
-onMounted(load)
 </script>
 
 <template>
@@ -77,12 +107,21 @@ onMounted(load)
       <span class="spacer"></span>
     </header>
 
-    <div class="content">
-      <div class="password-row">
-        <label>관리자 비밀번호</label>
-        <input v-model="adminPassword" type="password" placeholder="삭제 시 필요" />
-      </div>
+    <div v-if="!unlocked" class="gate">
+      <p class="gate-label">관리자 비밀번호</p>
+      <input
+        v-model="entryPassword"
+        type="password"
+        placeholder="비밀번호 입력"
+        @keyup.enter="enter"
+      />
+      <button :disabled="verifying" @click="enter">
+        {{ verifying ? '확인 중...' : '입장' }}
+      </button>
+      <p v-if="entryError" class="hint error">{{ entryError }}</p>
+    </div>
 
+    <div v-else class="content">
       <p v-if="loading" class="hint">불러오는 중...</p>
       <p v-if="error" class="hint error">{{ error }}</p>
       <p v-if="!loading && !error && sortedReports.length === 0" class="hint">
@@ -146,29 +185,47 @@ onMounted(load)
   color: var(--text-strong);
   margin: 0;
 }
-.content {
-  max-width: 900px;
-  margin: 0 auto;
-  padding: 24px 16px;
-}
-.password-row {
+.gate {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 20px;
+  justify-content: center;
+  gap: 12px;
+  padding: 80px 24px;
 }
-.password-row label {
-  font-size: 13px;
+.gate-label {
+  font-size: 14px;
   color: var(--text-muted);
+  margin: 0;
 }
-.password-row input {
+.gate input {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: 8px;
   color: var(--text);
-  padding: 8px 10px;
-  font-size: 13px;
-  width: 160px;
+  padding: 10px 12px;
+  font-size: 14px;
+  width: 220px;
+  text-align: center;
+}
+.gate button {
+  background: var(--cta);
+  color: var(--cta-text);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+.gate button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.content {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px;
 }
 .hint {
   font-size: 13px;
