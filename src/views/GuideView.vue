@@ -17,6 +17,7 @@ const steps = [
     <header class="topbar">
       <RouterLink to="/" class="back">← 홈</RouterLink>
       <span class="title">AED 사용법</span>
+      <span class="spacer"></span>
     </header>
 
     <div class="content">
@@ -41,25 +42,33 @@ const steps = [
 <style scoped>
 .page {
   min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
 }
 .topbar {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 12px;
   padding: 12px 16px;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--border);
 }
 .back {
+  justify-self: start;
   font-size: 14px;
-  color: #1a5fb4;
+  color: var(--accent);
   text-decoration: none;
 }
 .title {
-  font-weight: 600;
-  font-size: 16px;
+  justify-self: center;
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--text-strong);
+}
+.spacer {
+  justify-self: end;
 }
 .content {
-  padding: 16px;
+  padding: 24px 16px;
   max-width: 640px;
   margin: 0 auto;
 }
@@ -68,22 +77,31 @@ const steps = [
   width: 100%;
   padding-top: 56.25%;
   margin-bottom: 8px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
 }
 .video-wrap iframe {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  border-radius: 8px;
 }
 .source {
   font-size: 12px;
-  color: #999;
-  margin: 4px 0 20px;
+  color: var(--text-muted);
+  margin: 10px 0 24px;
 }
 .steps {
-  padding-left: 20px;
-  line-height: 1.8;
+  padding: 20px 20px 20px 40px;
+  line-height: 1.9;
   font-size: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.steps li::marker {
+  color: var(--accent);
+  font-weight: 700;
 }
 </style>

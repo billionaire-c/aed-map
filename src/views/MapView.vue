@@ -186,10 +186,10 @@ onMounted(async () => {
 
       <div class="map-wrap">
         <div ref="mapEl" class="map"></div>
-        <p v-if="mapError" class="hint error map-overlay-error">{{ mapError }}</p>
         <button class="locate-btn" :disabled="locating" @click="locateMe">
           {{ locating ? '위치 확인 중...' : '📍 현재 위치' }}
         </button>
+        <p v-if="mapError" class="hint error map-overlay-error">{{ mapError }}</p>
       </div>
     </div>
   </div>
@@ -200,24 +200,27 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  background: var(--bg);
+  color: var(--text);
 }
 .topbar {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
   padding: 12px 16px;
-  border-bottom: 1px solid #e5e5e5;
+  border-bottom: 1px solid var(--border);
 }
 .back {
   justify-self: start;
   font-size: 14px;
-  color: #1a5fb4;
+  color: var(--accent);
   text-decoration: none;
 }
 .title {
   justify-self: center;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: 800;
+  color: var(--text-strong);
   margin: 0;
 }
 .spacer {
@@ -231,7 +234,8 @@ onMounted(async () => {
 .sidebar {
   width: 320px;
   flex: none;
-  border-right: 1px solid #e5e5e5;
+  background: var(--bg-card);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -239,9 +243,14 @@ onMounted(async () => {
 .search {
   margin: 12px;
   padding: 8px 10px;
-  border: 1px solid #ddd;
+  background: var(--bg);
+  border: 1px solid var(--border);
   border-radius: 8px;
+  color: var(--text);
   font-size: 13px;
+}
+.search::placeholder {
+  color: var(--text-muted);
 }
 .list {
   flex: 1;
@@ -253,25 +262,27 @@ onMounted(async () => {
   align-items: flex-start;
   gap: 8px;
   padding: 10px 14px;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border);
   cursor: pointer;
 }
 .list-item:hover {
-  background: #f7f9fc;
+  background: rgba(56, 189, 248, 0.08);
 }
 .list-item .name {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 13px;
+  color: var(--text-strong);
   margin: 0 0 2px;
 }
 .list-item .address {
   font-size: 11px;
-  color: #888;
+  color: var(--text-muted);
   margin: 0;
 }
 .distance {
   font-size: 11px;
-  color: #1a5fb4;
+  color: var(--accent);
+  font-weight: 600;
   white-space: nowrap;
   flex: none;
 }
@@ -282,7 +293,7 @@ onMounted(async () => {
 .back-to-list {
   background: none;
   border: none;
-  color: #1a5fb4;
+  color: var(--accent);
   font-size: 13px;
   padding: 0;
   margin-bottom: 12px;
@@ -290,22 +301,46 @@ onMounted(async () => {
 }
 .detail .name {
   font-weight: 700;
+  color: var(--text-strong);
   margin: 0 0 2px;
 }
 .detail .address {
   font-size: 12px;
-  color: #666;
+  color: var(--text-muted);
   margin: 0;
 }
 .meta {
   font-size: 12px;
-  color: #999;
+  color: var(--text-muted);
   margin: 8px 0 12px;
 }
 .report-form {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+.report-form select,
+.report-form input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 13px;
+}
+.report-form button {
+  background: var(--cta);
+  color: var(--cta-text);
+  border: none;
+  border-radius: 8px;
+  padding: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+.report-form button:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 .map-wrap {
   flex: 1;
@@ -317,33 +352,36 @@ onMounted(async () => {
 }
 .locate-btn {
   position: absolute;
-  right: 16px;
-  bottom: 16px;
-  background: white;
-  border: 1px solid #ddd;
+  left: 16px;
+  top: 16px;
+  background: var(--bg-card);
+  color: var(--text);
+  border: 1px solid var(--border);
   border-radius: 999px;
   padding: 10px 16px;
   font-size: 13px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
   cursor: pointer;
 }
 .map-overlay-error {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  right: 12px;
-  background: white;
+  bottom: 16px;
+  left: 16px;
+  right: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 .hint {
   padding: 8px 14px;
   font-size: 13px;
-  color: #666;
+  color: var(--text-muted);
 }
 .hint.error {
-  color: #c0392b;
+  color: #f87171;
 }
 
 @media (max-width: 720px) {
@@ -354,7 +392,7 @@ onMounted(async () => {
     width: 100%;
     height: 40%;
     border-right: none;
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: 1px solid var(--border);
   }
   .map-wrap {
     flex: 1;

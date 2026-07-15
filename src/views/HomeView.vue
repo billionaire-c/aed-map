@@ -4,16 +4,17 @@ import { RouterLink } from 'vue-router'
 
 <template>
   <div class="home">
-    <h1 class="brand">AED 지도</h1>
-    <p class="tagline">가까운 자동심장충격기를 찾고, 사용법까지 한 곳에서</p>
+    <p class="brand">AED 지도</p>
+    <h1 class="headline">심정지 골든타임 4분,<br />가장 가까운 AED를 찾아드립니다</h1>
+    <p class="stat-line">화성시 전역 <strong>1,077대</strong> AED 실시간 위치 정보 · 공공데이터 기반</p>
 
-    <nav class="nav-cards">
-      <RouterLink to="/map" class="nav-card">
+    <nav class="cards">
+      <RouterLink to="/map" class="card">
         <span class="icon">📍</span>
         <span class="label">위치 보기</span>
         <span class="desc">내 주변 AED 위치를 지도에서 확인</span>
       </RouterLink>
-      <RouterLink to="/guide" class="nav-card">
+      <RouterLink to="/guide" class="card">
         <span class="icon">▶</span>
         <span class="label">사용법</span>
         <span class="desc">AED 사용 영상과 단계별 매뉴얼</span>
@@ -29,52 +30,74 @@ import { RouterLink } from 'vue-router'
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 32px 24px;
   text-align: center;
 }
 .brand {
-  font-size: 28px;
+  font-size: 15px;
   font-weight: 700;
-  margin: 0 0 8px;
+  color: var(--accent);
+  letter-spacing: 0.02em;
+  margin: 0 0 20px;
 }
-.tagline {
-  font-size: 14px;
-  color: #666;
-  margin: 0 0 32px;
+.headline {
+  font-size: 38px;
+  font-weight: 800;
+  color: var(--text-strong);
+  line-height: 1.28;
+  letter-spacing: -0.5px;
+  margin: 0 0 16px;
 }
-.nav-cards {
+.stat-line {
+  font-size: 15px;
+  color: var(--text-muted);
+  margin: 0 0 40px;
+}
+.stat-line strong {
+  color: var(--text);
+  font-weight: 700;
+}
+.cards {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
   justify-content: center;
 }
-.nav-card {
+.card {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  width: 200px;
-  padding: 28px 20px;
-  border: 1px solid #e0e0e0;
-  border-radius: 14px;
+  width: 220px;
+  padding: 32px 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
   text-decoration: none;
   color: inherit;
-  transition: box-shadow 0.15s, border-color 0.15s;
+  transition: border-color 0.15s, transform 0.15s;
 }
-.nav-card:hover {
-  border-color: #1a5fb4;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+.card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
 }
-.nav-card .icon {
-  font-size: 28px;
+.card .icon {
+  font-size: 30px;
   margin-bottom: 4px;
 }
-.nav-card .label {
-  font-weight: 600;
-  font-size: 16px;
+.card .label {
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--text-strong);
 }
-.nav-card .desc {
-  font-size: 12px;
-  color: #777;
+.card .desc {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 480px) {
+  .headline {
+    font-size: 28px;
+  }
 }
 </style>
