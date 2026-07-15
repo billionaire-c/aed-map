@@ -41,7 +41,8 @@ export default async function handler(req, res) {
     })
 
     if (!resp.ok) {
-      res.status(502).json({ error: 'AI 응답을 받아오지 못했어요' })
+      const errBody = await resp.text()
+      res.status(502).json({ error: 'AI 응답을 받아오지 못했어요', debugStatus: resp.status, debugBody: errBody })
       return
     }
 
