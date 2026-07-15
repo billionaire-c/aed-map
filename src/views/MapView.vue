@@ -249,6 +249,24 @@ onMounted(async () => {
             </button>
             <p v-if="successMessage" class="success-msg">✓ {{ successMessage }}</p>
           </div>
+
+          <div class="history">
+            <p class="history-title">신고 등록 내역</p>
+            <p v-if="!(store.reportsByDevice[selected.id] || []).length" class="hint">
+              등록된 신고 내역이 없습니다
+            </p>
+            <div
+              v-for="r in store.reportsByDevice[selected.id] || []"
+              :key="r.id"
+              class="history-item"
+            >
+              <div class="history-row">
+                <span :class="['badge-mini', 'badge-mini-' + r.status]">{{ STATUS_LABEL[r.status] || r.status }}</span>
+                <span class="history-date">{{ r.created_at.slice(0, 16).replace('T', ' ') }}</span>
+              </div>
+              <p v-if="r.comment" class="history-comment">{{ r.comment }}</p>
+            </div>
+          </div>
         </div>
 
         <p v-if="store.error" class="hint error">{{ store.error }}</p>
@@ -373,6 +391,42 @@ onMounted(async () => {
 .badge-mini-removed {
   background: rgba(248, 113, 113, 0.15);
   color: #f87171;
+}
+.badge-mini-ok {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+}
+.history {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.history-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin: 0 0 8px;
+}
+.history-item {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+.history-item:last-child {
+  border-bottom: none;
+}
+.history-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.history-date {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.history-comment {
+  font-size: 12px;
+  color: var(--text);
+  margin: 4px 0 0;
 }
 .detail {
   padding: 14px;

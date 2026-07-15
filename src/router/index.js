@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import MapView from '../views/MapView.vue'
 import GuideView from '../views/GuideView.vue'
+import AdminView from '../views/AdminView.vue'
 
 export const router = createRouter({
   history: createWebHistory(),
@@ -9,5 +10,6 @@ export const router = createRouter({
     { path: '/', name: 'home', component: HomeView },
     { path: '/map', name: 'map', component: MapView },
     { path: '/guide', name: 'guide', component: GuideView },
+    { path: '/admin', name: 'admin', component: AdminView },
   ],
 })
