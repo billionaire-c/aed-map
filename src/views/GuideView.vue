@@ -15,7 +15,7 @@ const steps = [
 <template>
   <div class="page">
     <header class="topbar">
-      <RouterLink to="/" class="back">← 지도로</RouterLink>
+      <RouterLink to="/" class="back">← 홈</RouterLink>
       <span class="title">AED 사용법</span>
     </header>
 
