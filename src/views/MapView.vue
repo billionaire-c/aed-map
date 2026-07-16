@@ -1,12 +1,13 @@
 <script setup>
 import { computed, onMounted, ref, shallowRef } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import { loadKakaoMaps } from '../lib/kakao'
 import { distanceKm, formatDistance } from '../lib/geo'
 import { useAedStore } from '../stores/aed'
 
 const HWASEONG_CENTER = { lat: 37.1996, lng: 126.8312 }
 
+const route = useRoute()
 const store = useAedStore()
 const mapEl = ref(null)
 const map = shallowRef(null)
@@ -292,6 +293,10 @@ onMounted(async () => {
     await store.fetchDevices()
     await store.fetchAllReports()
     placeMarkers(kakao)
+
+    if (route.query.emergency === '1') {
+      triggerEmergency()
+    }
   } catch (e) {
     mapError.value = '카카오맵을 불러오지 못했어요. .env의 VITE_KAKAO_JS_KEY가 올바른지 확인해주세요.'
   }
@@ -301,14 +306,14 @@ onMounted(async () => {
 <template>
   <div class="page">
     <header class="topbar">
-      <RouterLink to="/" class="back">← 홈</RouterLink>
-      <h1 class="title">AED 지도</h1>
-      <div class="topbar-actions">
+      <div class="topbar-left">
+        <RouterLink to="/" class="back">← 홈</RouterLink>
         <button class="emergency-btn" @click="triggerEmergency">🚨 응급 상황</button>
-        <button class="locate-btn" :disabled="locating" @click="locateMe">
-          {{ locating ? '위치 확인 중...' : '📍 현재 위치' }}
-        </button>
       </div>
+      <h1 class="title">AED 지도</h1>
+      <button class="locate-btn" :disabled="locating" @click="locateMe">
+        {{ locating ? '위치 확인 중...' : '📍 현재 위치' }}
+      </button>
     </header>
 
     <div class="body">
@@ -446,10 +451,14 @@ onMounted(async () => {
   color: var(--text-strong);
   margin: 0;
 }
-.topbar-actions {
-  justify-self: end;
+.topbar-left {
+  justify-self: start;
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
+}
+.locate-btn {
+  justify-self: end;
 }
 .body {
   flex: 1;
@@ -823,7 +832,7 @@ onMounted(async () => {
   .title {
     font-size: 15px;
   }
-  .topbar-actions {
+  .topbar-left {
     gap: 6px;
   }
   .emergency-btn,

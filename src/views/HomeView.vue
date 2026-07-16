@@ -20,6 +20,10 @@ import { RouterLink } from 'vue-router'
         <span class="desc">AED 사용 영상과 단계별 매뉴얼</span>
       </RouterLink>
     </nav>
+
+    <RouterLink to="/map?emergency=1" class="emergency-cta">
+      🚨 지금 응급 상황이신가요? 바로 안내받기
+    </RouterLink>
   </div>
 </template>
 
@@ -93,6 +97,22 @@ import { RouterLink } from 'vue-router'
 .card .desc {
   font-size: 13px;
   color: var(--text-muted);
+}
+.emergency-cta {
+  display: inline-block;
+  margin-top: 24px;
+  padding: 14px 24px;
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid #f87171;
+  border-radius: 999px;
+  color: #f87171;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.emergency-cta:hover {
+  background: rgba(248, 113, 113, 0.2);
 }
 
 @media (max-width: 480px) {

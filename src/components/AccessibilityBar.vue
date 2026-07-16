@@ -4,35 +4,8 @@ import { useA11yStore } from '../stores/a11y'
 
 const store = useA11yStore()
 const open = ref(false)
-const reading = ref(false)
 
 const FONT_LABEL = { 1: '기본', 1.2: '크게', 1.4: '아주 크게' }
-
-function getReadableText() {
-  const appEl = document.getElementById('app')
-  if (!appEl) return ''
-  const clone = appEl.cloneNode(true)
-  clone.querySelectorAll('.list, .a11y-wrap, .map, .map-wrap').forEach((el) => el.remove())
-  return clone.textContent.replace(/\s+/g, ' ').trim()
-}
-
-function toggleReadPage() {
-  if (!window.speechSynthesis) return
-  if (reading.value) {
-    window.speechSynthesis.cancel()
-    reading.value = false
-    return
-  }
-  const text = getReadableText()
-  const utter = new SpeechSynthesisUtterance(text)
-  utter.lang = 'ko-KR'
-  utter.onend = () => {
-    reading.value = false
-  }
-  window.speechSynthesis.cancel()
-  window.speechSynthesis.speak(utter)
-  reading.value = true
-}
 
 onMounted(() => {
   store.apply()
@@ -47,9 +20,6 @@ onMounted(() => {
       </button>
       <button @click="store.cycleFontScale">
         🔍 글자 크기: {{ FONT_LABEL[store.fontScale] }}
-      </button>
-      <button @click="toggleReadPage">
-        {{ reading ? '⏹ 읽기 중지' : '🔊 화면 읽어주기' }}
       </button>
     </div>
     <button class="a11y-toggle" aria-label="접근성 설정" @click="open = !open">♿</button>
