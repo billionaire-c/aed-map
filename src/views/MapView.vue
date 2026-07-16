@@ -308,11 +308,22 @@ onMounted(async () => {
     <header class="topbar">
       <div class="topbar-left">
         <RouterLink to="/" class="back">← 홈</RouterLink>
-        <button class="emergency-btn" @click="triggerEmergency">🚨 응급 상황</button>
+        <button class="emergency-btn" @click="triggerEmergency">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 4 L21 19 H3 Z" />
+            <line x1="12" y1="10" x2="12" y2="14" />
+            <circle cx="12" cy="16.5" r="0.4" />
+          </svg>
+          응급 상황
+        </button>
       </div>
       <h1 class="title">AED 지도</h1>
       <button class="locate-btn" :disabled="locating" @click="locateMe">
-        {{ locating ? '위치 확인 중...' : '📍 현재 위치' }}
+        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 21c-4-4.5-7-8-7-11a7 7 0 0 1 14 0c0 3-3 6.5-7 11z" />
+          <circle cx="12" cy="10" r="2.5" />
+        </svg>
+        {{ locating ? '위치 확인 중...' : '현재 위치' }}
       </button>
     </header>
 
@@ -459,6 +470,12 @@ onMounted(async () => {
 }
 .locate-btn {
   justify-self: end;
+}
+.btn-icon {
+  width: 14px;
+  height: 14px;
+  vertical-align: -2px;
+  margin-right: 2px;
 }
 .body {
   flex: 1;
