@@ -25,6 +25,21 @@ body {
   min-height: 100vh;
 }
 
+:root.a11y-high-contrast {
+  --bg: #000000;
+  --bg-card: #000000;
+  --border: #ffff00;
+  --text: #ffffff;
+  --text-strong: #ffffff;
+  --text-muted: #ffff00;
+  --accent: #ffff00;
+  --cta: #ffff00;
+  --cta-text: #000000;
+}
+:root.a11y-high-contrast * {
+  border-color: var(--border) !important;
+}
+
 button,
 select,
 input {
