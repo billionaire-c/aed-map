@@ -25,6 +25,12 @@ const reportComment = ref('')
 const submitting = ref(false)
 const successMessage = ref('')
 
+const emergencyOpen = ref(false)
+const emergencyLoading = ref(false)
+const emergencySummary = ref('')
+const emergencyError = ref('')
+const emergencyDevice = ref(null)
+
 const STATUS_LABEL = { ok: '정상 작동', broken: '고장', removed: '철거됨' }
 
 function summarize(aedId) {
@@ -133,6 +139,30 @@ function placeMarkers(kakao) {
   })
 }
 
+function applyLocation(latitude, longitude) {
+  userLocation.value = { lat: latitude, lng: longitude }
+
+  const kakao = kakaoRef.value
+  const pt = new kakao.maps.LatLng(latitude, longitude)
+  map.value.panTo(pt)
+
+  if (meMarker.value) meMarker.value.setMap(null)
+  meMarker.value = new kakao.maps.Marker({
+    position: pt,
+    map: map.value,
+    image: new kakao.maps.MarkerImage(
+      'data:image/svg+xml;base64,' +
+        btoa(
+          '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="8" fill="%234285F4" stroke="white" stroke-width="3"/></svg>'.replace(
+            /%23/g,
+            '#',
+          ),
+        ),
+      new kakao.maps.Size(20, 20),
+    ),
+  })
+}
+
 function locateMe() {
   if (!navigator.geolocation) {
     alert('이 브라우저는 위치 확인을 지원하지 않아요.')
@@ -141,35 +171,113 @@ function locateMe() {
   locating.value = true
   navigator.geolocation.getCurrentPosition(
     (pos) => {
-      const { latitude, longitude } = pos.coords
-      userLocation.value = { lat: latitude, lng: longitude }
+      applyLocation(pos.coords.latitude, pos.coords.longitude)
       locating.value = false
-
-      const kakao = kakaoRef.value
-      const pt = new kakao.maps.LatLng(latitude, longitude)
-      map.value.panTo(pt)
-
-      if (meMarker.value) meMarker.value.setMap(null)
-      meMarker.value = new kakao.maps.Marker({
-        position: pt,
-        map: map.value,
-        image: new kakao.maps.MarkerImage(
-          'data:image/svg+xml;base64,' +
-            btoa(
-              '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20"><circle cx="10" cy="10" r="8" fill="%234285F4" stroke="white" stroke-width="3"/></svg>'.replace(
-                /%23/g,
-                '#',
-              ),
-            ),
-          new kakao.maps.Size(20, 20),
-        ),
-      })
     },
     () => {
       locating.value = false
       alert('위치 확인에 실패했어요. 브라우저 위치 권한을 확인해주세요.')
     },
   )
+}
+
+function getLocationOnce() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error('geolocation unsupported'))
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        applyLocation(pos.coords.latitude, pos.coords.longitude)
+        resolve()
+      },
+      () => reject(new Error('geolocation failed')),
+    )
+  })
+}
+
+function findNearestDevice() {
+  const withCoords = store.devices.filter((d) => d.lat && d.lng)
+  if (!withCoords.length || !userLocation.value) return null
+  let nearest = null
+  let nearestKm = Infinity
+  for (const d of withCoords) {
+    const km = distanceKm(userLocation.value.lat, userLocation.value.lng, d.lat, d.lng)
+    if (km < nearestKm) {
+      nearestKm = km
+      nearest = d
+    }
+  }
+  return nearest ? { ...nearest, _distanceKm: nearestKm } : null
+}
+
+async function triggerEmergency() {
+  emergencyOpen.value = true
+  emergencyLoading.value = true
+  emergencySummary.value = ''
+  emergencyError.value = ''
+  emergencyDevice.value = null
+
+  try {
+    if (!userLocation.value) {
+      await getLocationOnce()
+    }
+  } catch {
+    emergencyLoading.value = false
+    emergencyError.value = '위치 확인에 실패했어요. 브라우저 위치 권한을 확인해주세요.'
+    return
+  }
+
+  const nearest = findNearestDevice()
+  if (!nearest) {
+    emergencyLoading.value = false
+    emergencyError.value = '주변 AED 정보를 찾지 못했어요.'
+    return
+  }
+  emergencyDevice.value = nearest
+
+  try {
+    const resp = await fetch('/api/emergency-summary', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        deviceName: nearest.name,
+        deviceAddress: nearest.address,
+        distanceMeters: nearest._distanceKm * 1000,
+      }),
+    })
+    const data = await resp.json()
+    if (!resp.ok) {
+      emergencyError.value = data.error || '요약을 받아오지 못했어요'
+    } else {
+      emergencySummary.value = data.summary
+    }
+  } catch {
+    emergencyError.value = '네트워크 오류가 발생했어요'
+  } finally {
+    emergencyLoading.value = false
+  }
+}
+
+function speakSummary() {
+  if (!emergencySummary.value || !window.speechSynthesis) return
+  window.speechSynthesis.cancel()
+  const utter = new SpeechSynthesisUtterance(emergencySummary.value)
+  utter.lang = 'ko-KR'
+  window.speechSynthesis.speak(utter)
+}
+
+function goToEmergencyDevice() {
+  if (!emergencyDevice.value) return
+  emergencyOpen.value = false
+  window.speechSynthesis?.cancel()
+  focusDevice(emergencyDevice.value)
+}
+
+function closeEmergency() {
+  emergencyOpen.value = false
+  window.speechSynthesis?.cancel()
 }
 
 onMounted(async () => {
@@ -195,9 +303,12 @@ onMounted(async () => {
     <header class="topbar">
       <RouterLink to="/" class="back">← 홈</RouterLink>
       <h1 class="title">AED 지도</h1>
-      <button class="locate-btn" :disabled="locating" @click="locateMe">
-        {{ locating ? '위치 확인 중...' : '📍 현재 위치' }}
-      </button>
+      <div class="topbar-actions">
+        <button class="emergency-btn" @click="triggerEmergency">🚨 응급 상황</button>
+        <button class="locate-btn" :disabled="locating" @click="locateMe">
+          {{ locating ? '위치 확인 중...' : '📍 현재 위치' }}
+        </button>
+      </div>
     </header>
 
     <div class="body">
@@ -279,6 +390,31 @@ onMounted(async () => {
         <p v-if="mapError" class="hint error map-overlay-error">{{ mapError }}</p>
       </div>
     </div>
+
+    <div v-if="emergencyOpen" class="emergency-overlay" @click.self="closeEmergency">
+      <div class="emergency-modal">
+        <p class="emergency-title">🚨 응급 상황 즉시 안내</p>
+
+        <p v-if="emergencyLoading" class="emergency-loading">가장 가까운 AED를 찾는 중...</p>
+
+        <p v-else-if="emergencyError" class="emergency-error">{{ emergencyError }}</p>
+
+        <template v-else>
+          <div v-if="emergencyDevice" class="emergency-device">
+            <p class="emergency-device-name">{{ emergencyDevice.name }}</p>
+            <p class="emergency-device-address">{{ emergencyDevice.address }}</p>
+            <p class="emergency-device-distance">{{ formatDistance(emergencyDevice._distanceKm) }}</p>
+          </div>
+          <p class="emergency-summary">{{ emergencySummary }}</p>
+          <div class="emergency-actions">
+            <button class="emergency-speak-btn" @click="speakSummary">🔊 음성으로 듣기</button>
+            <button class="emergency-goto-btn" @click="goToEmergencyDevice">지도에서 보기</button>
+          </div>
+        </template>
+
+        <button class="emergency-close-btn" @click="closeEmergency">닫기</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -310,8 +446,10 @@ onMounted(async () => {
   color: var(--text-strong);
   margin: 0;
 }
-.topbar .locate-btn {
+.topbar-actions {
   justify-self: end;
+  display: flex;
+  gap: 8px;
 }
 .body {
   flex: 1;
@@ -530,6 +668,119 @@ onMounted(async () => {
   opacity: 0.6;
   cursor: default;
 }
+.emergency-btn {
+  background: #f87171;
+  color: #450a0a;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.emergency-btn:hover {
+  background: #ef4444;
+}
+.emergency-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 50;
+}
+.emergency-modal {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 420px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.emergency-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: #f87171;
+  margin: 0 0 16px;
+}
+.emergency-loading,
+.emergency-error {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin: 0 0 8px;
+}
+.emergency-error {
+  color: #f87171;
+}
+.emergency-device {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+}
+.emergency-device-name {
+  font-weight: 700;
+  color: var(--text-strong);
+  margin: 0 0 2px;
+}
+.emergency-device-address {
+  font-size: 12px;
+  color: var(--text-muted);
+  margin: 0;
+}
+.emergency-device-distance {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 700;
+  margin: 4px 0 0;
+}
+.emergency-summary {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--text);
+  white-space: pre-wrap;
+  margin: 0 0 16px;
+}
+.emergency-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.emergency-speak-btn,
+.emergency-goto-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.emergency-speak-btn:hover,
+.emergency-goto-btn:hover {
+  border-color: var(--accent);
+}
+.emergency-close-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+}
+.emergency-close-btn:hover {
+  color: var(--text);
+}
 .map-overlay-error {
   position: absolute;
   bottom: 16px;
@@ -562,6 +813,23 @@ onMounted(async () => {
   }
   .map-wrap {
     flex: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar {
+    padding: 10px 10px;
+  }
+  .title {
+    font-size: 15px;
+  }
+  .topbar-actions {
+    gap: 6px;
+  }
+  .emergency-btn,
+  .locate-btn {
+    font-size: 11px;
+    padding: 6px 8px;
   }
 }
 </style>
