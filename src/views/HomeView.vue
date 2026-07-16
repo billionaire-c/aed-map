@@ -13,7 +13,7 @@ const stats = [
     <svg
       class="bg-illust"
       viewBox="0 0 700 460"
-      preserveAspectRatio="xMidYMid slice"
+      preserveAspectRatio="xMidYMid meet"
       aria-hidden="true"
     >
       <path
@@ -75,6 +75,7 @@ const stats = [
         opacity="0.95"
       >AED</text>
     </svg>
+    <div class="scrim" aria-hidden="true"></div>
 
     <div class="content">
       <p class="eyebrow">화성시 공공안전 서비스</p>
@@ -136,14 +137,31 @@ const stats = [
 }
 .bg-illust {
   position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0.13;
+  left: -3%;
+  bottom: -5%;
+  width: 46%;
+  max-width: 440px;
+  aspect-ratio: 700 / 460;
+  height: auto;
+  opacity: 0.14;
   pointer-events: none;
+  -webkit-mask-image: radial-gradient(ellipse 90% 90% at 26% 70%, #000 42%, transparent 80%);
+  mask-image: radial-gradient(ellipse 90% 90% at 26% 70%, #000 42%, transparent 80%);
+}
+.scrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 60% 62% at 50% 46%,
+    rgba(13, 21, 38, 0.94) 0%,
+    rgba(13, 21, 38, 0.6) 44%,
+    rgba(13, 21, 38, 0) 74%
+  );
 }
 .content {
   position: relative;
+  z-index: 1;
   width: 100%;
   max-width: 560px;
   text-align: center;
