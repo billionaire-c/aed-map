@@ -45,3 +45,60 @@ select,
 input {
   font-family: inherit;
 }
+
+/* 키보드 포커스 표시 — 다크 배경에서도 또렷하게 (마우스 클릭 시엔 표시 안 함) */
+a:focus-visible,
+button:focus-visible,
+select:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+:root.a11y-high-contrast a:focus-visible,
+:root.a11y-high-contrast button:focus-visible,
+:root.a11y-high-contrast select:focus-visible,
+:root.a11y-high-contrast input:focus-visible,
+:root.a11y-high-contrast [tabindex]:focus-visible {
+  outline-width: 3px;
+}
+
+/* 다크 테마 스크롤바 */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+  border: 2px solid var(--bg);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* 텍스트 선택 색상 — 브랜드 색조와 맞춤 */
+::selection {
+  background: rgba(56, 189, 248, 0.3);
+  color: var(--text-strong);
+}
+
+/* 모션 최소화 설정 존중 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
